@@ -19,10 +19,11 @@ public class DevDataLoader implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) {
-		if (!userRepository.existsByEmail("admin@exam.com")) {
+		// Seed the default WASAC administrator on first startup.
+		if (!userRepository.existsByEmail("admin@wasac.com")) {
 			userRepository.save(User.builder()
 					.fullNames("System Admin")
-					.email("admin@exam.com")
+					.email("admin@wasac.com")
 					.phoneNumber("+250700000000")
 					.password(passwordEncoder.encode("admin123"))
 					.role(Role.ADMIN)

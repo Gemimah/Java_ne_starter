@@ -13,12 +13,15 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+// A monthly utility bill for one customer + meter type.
+// Unique per (customer, meterType, month, year) to prevent duplicate billing.
 @Entity
 @Table(name = "bills", uniqueConstraints = {
 		@UniqueConstraint(columnNames = {"customer_id", "meter_type", "billing_month", "billing_year"})
@@ -52,9 +55,11 @@ public class Bill {
 	@Column(nullable = false)
 	private BillStatus status;
 
+	// Units consumed (currentReading - previousReading).
 	@Column(nullable = false, precision = 12, scale = 2)
 	private BigDecimal consumption;
 
+	// consumption * tariff rate (the variable part).
 	@Column(nullable = false, precision = 12, scale = 2)
 	private BigDecimal baseAmount;
 
@@ -72,6 +77,14 @@ public class Bill {
 
 	@Column(nullable = false, precision = 12, scale = 2)
 	private BigDecimal outstandingBalance;
+
+	// Payment deadline; after this date an unpaid bill becomes OVERDUE with penalty.
+	@Column(nullable = false)
+	private LocalDate dueDate;
+
+	// Ensures the late penalty is only charged once.
+	@Column(nullable = false)
+	private boolean penaltyApplied;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "tariff_id")

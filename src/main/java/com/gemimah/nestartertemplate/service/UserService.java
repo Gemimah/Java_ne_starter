@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// User accounts + signup. Enforces that only admins may create staff roles.
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -31,20 +32,34 @@ public class UserService {
 			throw new ApiException("Email already registered", HttpStatus.CONFLICT);
 		}
 
-		Role role = request.role() != null ? request.role() : Role.CUSTOMER;
+		// Task 1: signup only collects the user attributes. Everyone starts as a
+		// CUSTOMER; an ADMIN can promote them later via PUT /api/users/{id}/role.
 		boolean enabled = request.status() == null || request.status().equalsIgnoreCase("ACTIVE");
 		User user = User.builder()
 				.fullNames(request.fullNames())
 				.email(request.email())
 				.phoneNumber(request.phoneNumber())
 				.password(passwordEncoder.encode(request.password()))
-				.role(role)
+				.role(Role.CUSTOMER)
 				.enabled(enabled)
 				.build();
 
 		User saved = userRepository.save(user);
-		log.info("Registered user {}", saved.getEmail());
+		log.info("Registered user {} as CUSTOMER", saved.getEmail());
 		return UserResponse.from(saved);
+	}
+
+	// Admin elevates/changes a user's role and (optionally) their active status.
+	@Transactional
+	public UserResponse updateRole(Long id, Role role, String status) {
+		User user = userRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with id " + id));
+		user.setRole(role);
+		if (status != null) {
+			user.setEnabled(status.equalsIgnoreCase("ACTIVE"));
+		}
+		log.info("Updated user {} -> role {}", user.getEmail(), role);
+		return UserResponse.from(userRepository.save(user));
 	}
 
 	@Transactional(readOnly = true)

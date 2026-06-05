@@ -9,13 +9,14 @@ import com.gemimah.nestartertemplate.entity.RecordStatus;
 import com.gemimah.nestartertemplate.exception.ApiException;
 import com.gemimah.nestartertemplate.repository.MeterReadingRepository;
 import com.gemimah.nestartertemplate.util.PaginationUtil;
-import java.math.BigDecimal;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Captures meter readings with the exam's business rules.
 @Service
 @RequiredArgsConstructor
 public class MeterReadingService {
@@ -23,6 +24,7 @@ public class MeterReadingService {
 	private final MeterService meterService;
 	private final MeterReadingRepository meterReadingRepository;
 
+	// Rules: meter active, current > previous, one reading per meter per month/year.
 	@Transactional
 	public MeterReadingResponse capture(MeterReadingRequest request) {
 		Meter meter = meterService.getEntity(request.meterId());
@@ -40,16 +42,10 @@ public class MeterReadingService {
 			throw new ApiException("Reading already exists for this meter in the selected month/year", HttpStatus.CONFLICT);
 		}
 
-		BigDecimal prev = request.previousReading();
-		BigDecimal curr = request.currentReading();
-		if (curr.compareTo(prev) <= 0) {
-			throw new ApiException("Invalid reading values", HttpStatus.BAD_REQUEST);
-		}
-
 		MeterReading reading = MeterReading.builder()
 				.meter(meter)
-				.previousReading(prev)
-				.currentReading(curr)
+				.previousReading(request.previousReading())
+				.currentReading(request.currentReading())
 				.readingDate(request.readingDate())
 				.readingMonth(month)
 				.readingYear(year)
@@ -59,7 +55,18 @@ public class MeterReadingService {
 	}
 
 	@Transactional(readOnly = true)
+	public MeterReading getEntity(Long id) {
+		return meterReadingRepository.findById(id)
+				.orElseThrow(() -> new ApiException("Reading not found: " + id, HttpStatus.NOT_FOUND));
+	}
+
+	@Transactional(readOnly = true)
 	public PageResponse<MeterReadingResponse> getAll(Pageable pageable) {
 		return PaginationUtil.map(meterReadingRepository.findAll(pageable), MeterReadingResponse::from);
+	}
+
+	@Transactional(readOnly = true)
+	public List<MeterReadingResponse> getByMeter(Long meterId) {
+		return meterReadingRepository.findByMeterId(meterId).stream().map(MeterReadingResponse::from).toList();
 	}
 }

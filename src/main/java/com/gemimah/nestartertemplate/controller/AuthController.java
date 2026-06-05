@@ -9,6 +9,7 @@ import com.gemimah.nestartertemplate.dto.UserResponse;
 import com.gemimah.nestartertemplate.service.AuthService;
 import com.gemimah.nestartertemplate.service.OtpService;
 import com.gemimah.nestartertemplate.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Tag(name = "01. Authentication", description = "Signup and login (JWT)")
 public class AuthController {
 
 	private final UserService userService;

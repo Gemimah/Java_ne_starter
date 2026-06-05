@@ -9,7 +9,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,32 +16,39 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+// In-app notification for a customer. Also sent out as an email.
+// Rows can be created by the application OR by the database trigger (Task 6).
 @Entity
-@Table(name = "messages")
+@Table(name = "notifications")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Message {
+public class Notification {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	// Customer who should receive this notification.
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "customer_id", nullable = false)
 	private Customer customer;
 
+	// Short subject line (also used as email subject).
 	@Column(nullable = false)
-	private String monthYear;
+	private String subject;
 
-	@Column(nullable = false, precision = 12, scale = 2)
-	private BigDecimal amount;
+	// Full message body (also the email body).
+	@Column(name = "message", nullable = false, columnDefinition = "TEXT")
+	private String message;
 
-	@Column(nullable = false, columnDefinition = "TEXT")
-	private String text;
+	// Whether the customer has read it (toggled via PUT /api/notifications/{id}/read).
+	@Column(name = "is_read", nullable = false)
+	private boolean readFlag;
 
-	@Column(nullable = false)
+	// When the notification was created.
+	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 }
