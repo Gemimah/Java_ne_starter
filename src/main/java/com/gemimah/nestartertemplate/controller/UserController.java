@@ -2,6 +2,7 @@ package com.gemimah.nestartertemplate.controller;
 
 import com.gemimah.nestartertemplate.dto.PageResponse;
 import com.gemimah.nestartertemplate.dto.UpdateUserRoleRequest;
+import com.gemimah.nestartertemplate.dto.UpdateUserStatusRequest;
 import com.gemimah.nestartertemplate.dto.UserResponse;
 import com.gemimah.nestartertemplate.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,5 +46,13 @@ public class UserController {
 	public ResponseEntity<UserResponse> updateRole(@PathVariable Long id,
 			@Valid @RequestBody UpdateUserRoleRequest request) {
 		return ResponseEntity.ok(userService.updateRole(id, request.role(), request.status()));
+	}
+
+	// Soft delete: admin activates/deactivates a user (no physical deletion).
+	@PutMapping("/{id}/status")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<UserResponse> setStatus(@PathVariable Long id,
+			@Valid @RequestBody UpdateUserStatusRequest request) {
+		return ResponseEntity.ok(userService.setStatus(id, request.status()));
 	}
 }

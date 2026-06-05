@@ -49,6 +49,17 @@ public class UserService {
 		return UserResponse.from(saved);
 	}
 
+	// Soft delete: admin activates/deactivates a user instead of physically
+	// deleting it (billing systems keep audit history and data integrity).
+	@Transactional
+	public UserResponse setStatus(Long id, String status) {
+		User user = userRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with id " + id));
+		user.setEnabled(status.equalsIgnoreCase("ACTIVE"));
+		log.info("Set user {} status -> {}", user.getEmail(), status.toUpperCase());
+		return UserResponse.from(userRepository.save(user));
+	}
+
 	// Admin elevates/changes a user's role and (optionally) their active status.
 	@Transactional
 	public UserResponse updateRole(Long id, Role role, String status) {
