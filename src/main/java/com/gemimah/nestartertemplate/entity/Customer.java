@@ -15,36 +15,34 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "customers")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class Customer {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, unique = true)
-	private String email;
-
-	// Nullable to avoid Hibernate failing on ALTER TABLE for an already-existing exam_db schema.
-	// We still validate required values in RegisterRequest.
-	@Column(nullable = true)
+	@Column(nullable = false)
 	private String fullNames;
 
-	@Column(nullable = true)
+	@Column(nullable = false, unique = true)
+	private String nationalId;
+
+	@Column(nullable = false)
+	private String email;
+
+	@Column(nullable = false)
 	private String phoneNumber;
 
 	@Column(nullable = false)
-	private String password;
+	private String address;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private Role role;
-
-	@Column(nullable = false)
-	private boolean enabled;
+	private RecordStatus status;
 }

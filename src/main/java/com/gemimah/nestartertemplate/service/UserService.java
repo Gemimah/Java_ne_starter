@@ -31,12 +31,15 @@ public class UserService {
 			throw new ApiException("Email already registered", HttpStatus.CONFLICT);
 		}
 
-		Role role = request.role() != null ? request.role() : Role.USER;
+		Role role = request.role() != null ? request.role() : Role.CUSTOMER;
+		boolean enabled = request.status() == null || request.status().equalsIgnoreCase("ACTIVE");
 		User user = User.builder()
+				.fullNames(request.fullNames())
 				.email(request.email())
+				.phoneNumber(request.phoneNumber())
 				.password(passwordEncoder.encode(request.password()))
 				.role(role)
-				.enabled(false)
+				.enabled(enabled)
 				.build();
 
 		User saved = userRepository.save(user);

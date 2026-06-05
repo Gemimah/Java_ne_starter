@@ -28,7 +28,7 @@ public class UserController {
 	}
 
 	@GetMapping("/{id}")
-	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<UserResponse> getById(@PathVariable Long id) {
 		return ResponseEntity.ok(userService.getById(id));
 	}

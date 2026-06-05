@@ -2,12 +2,15 @@ package com.gemimah.nestartertemplate.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,36 +18,31 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "messages")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class Message {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, unique = true)
-	private String email;
-
-	// Nullable to avoid Hibernate failing on ALTER TABLE for an already-existing exam_db schema.
-	// We still validate required values in RegisterRequest.
-	@Column(nullable = true)
-	private String fullNames;
-
-	@Column(nullable = true)
-	private String phoneNumber;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "customer_id", nullable = false)
+	private Customer customer;
 
 	@Column(nullable = false)
-	private String password;
+	private String monthYear;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private Role role;
+	@Column(nullable = false, precision = 12, scale = 2)
+	private BigDecimal amount;
+
+	@Column(nullable = false, columnDefinition = "TEXT")
+	private String text;
 
 	@Column(nullable = false)
-	private boolean enabled;
+	private Instant createdAt;
 }

@@ -21,7 +21,9 @@ public class DevDataLoader implements CommandLineRunner {
 	public void run(String... args) {
 		if (!userRepository.existsByEmail("admin@exam.com")) {
 			userRepository.save(User.builder()
+					.fullNames("System Admin")
 					.email("admin@exam.com")
+					.phoneNumber("+250700000000")
 					.password(passwordEncoder.encode("admin123"))
 					.role(Role.ADMIN)
 					.enabled(true)
