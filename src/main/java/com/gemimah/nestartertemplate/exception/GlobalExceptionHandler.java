@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,6 +36,12 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiErrorResponse> handleBadCredentials(BadCredentialsException ex,
 			HttpServletRequest request) {
 		return buildResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", "Invalid email or password", request, null);
+	}
+
+	@ExceptionHandler(DisabledException.class)
+	public ResponseEntity<ApiErrorResponse> handleDisabled(DisabledException ex, HttpServletRequest request) {
+		return buildResponse(HttpStatus.FORBIDDEN, "Forbidden",
+				"Account not verified. Please verify the OTP sent to your email.", request, null);
 	}
 
 	@ExceptionHandler(Exception.class)

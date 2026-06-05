@@ -32,7 +32,15 @@ public class AuthController {
 
 	@PostMapping("/register")
 	public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(userService.register(request));
+		UserResponse user = userService.register(request);
+		// Auto-send an OTP so the user can verify and activate the account.
+		// Email failure must not block account creation; the user can resend later.
+		try {
+			otpService.sendOtp(new OtpRequest(request.email()));
+		} catch (Exception ex) {
+			// ignored on purpose (best-effort)
+		}
+		return ResponseEntity.status(HttpStatus.CREATED).body(user);
 	}
 
 	@PostMapping("/login")

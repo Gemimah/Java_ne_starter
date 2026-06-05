@@ -34,18 +34,18 @@ public class UserService {
 
 		// Task 1: signup only collects the user attributes. Everyone starts as a
 		// CUSTOMER; an ADMIN can promote them later via PUT /api/users/{id}/role.
-		boolean enabled = request.status() == null || request.status().equalsIgnoreCase("ACTIVE");
+		// Accounts start INACTIVE and must verify the OTP emailed to them before login.
 		User user = User.builder()
 				.fullNames(request.fullNames())
 				.email(request.email())
 				.phoneNumber(request.phoneNumber())
 				.password(passwordEncoder.encode(request.password()))
 				.role(Role.CUSTOMER)
-				.enabled(enabled)
+				.enabled(false)
 				.build();
 
 		User saved = userRepository.save(user);
-		log.info("Registered user {} as CUSTOMER", saved.getEmail());
+		log.info("Registered user {} as CUSTOMER (pending OTP verification)", saved.getEmail());
 		return UserResponse.from(saved);
 	}
 
