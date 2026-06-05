@@ -79,7 +79,16 @@ public class BillingService {
 				.penaltyApplied(false)
 				.tariff(tariff)
 				.build();
-		return BillResponse.from(billRepository.save(bill));
+		Bill saved = billRepository.save(bill);
+
+		// Task 6: on bill generation, insert a notification message (and email it).
+		String monthYear = saved.getBillingMonth() + "/" + saved.getBillingYear();
+		String message = "Dear " + customer.getFullNames() + ",\n"
+				+ "Your " + monthYear + " utility bill of " + saved.getTotalAmount()
+				+ " FRW has been generated and is pending approval.";
+		notificationService.notify(customer, "Bill Generated - " + monthYear, message);
+
+		return BillResponse.from(saved);
 	}
 
 	// Task 8: finance/admin approves a pending bill; customer is notified + emailed.

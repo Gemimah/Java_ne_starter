@@ -70,4 +70,36 @@ AFTER UPDATE ON bills
 FOR EACH ROW
 EXECUTE FUNCTION fn_log_bill_event();
 
+-- 5) Function: log a message when a bill is first generated (INSERT)
+CREATE OR REPLACE FUNCTION fn_log_bill_generated()
+RETURNS trigger AS
+$$
+DECLARE
+    customer_name TEXT;
+    my            TEXT;
+BEGIN
+    SELECT full_names INTO customer_name FROM customers WHERE id = NEW.customer_id;
+    my := NEW.billing_month || '/' || NEW.billing_year;
+
+    INSERT INTO notification_log(customer_id, month_year, amount, message, created_at)
+    VALUES (
+        NEW.customer_id,
+        my,
+        NEW.total_amount,
+        'Dear ' || COALESCE(customer_name, 'Customer') || ', Your ' || my
+            || ' utility bill of ' || NEW.total_amount
+            || ' FRW has been generated and is pending approval.',
+        now()
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 6) Trigger: after a bill is generated (INSERT)
+DROP TRIGGER IF EXISTS trg_log_bill_generated ON bills;
+CREATE TRIGGER trg_log_bill_generated
+AFTER INSERT ON bills
+FOR EACH ROW
+EXECUTE FUNCTION fn_log_bill_generated();
+
 -- View results with:  SELECT * FROM notification_log ORDER BY id;
