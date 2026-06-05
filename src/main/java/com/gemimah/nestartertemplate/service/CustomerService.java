@@ -78,8 +78,23 @@ public class CustomerService {
 		customer.setEmail(request.email());
 		customer.setPhoneNumber(request.phoneNumber());
 		customer.setAddress(request.address());
-		customer.setStatus(RecordStatus.valueOf(request.status().toUpperCase()));
-		return CustomerResponse.from(customerRepository.save(customer));
+
+		RecordStatus newStatus = RecordStatus.valueOf(request.status().toUpperCase());
+		customer.setStatus(newStatus);
+		CustomerResponse response = CustomerResponse.from(customerRepository.save(customer));
+
+		// Deactivating a customer also deactivates all of their meters.
+		if (newStatus == RecordStatus.INACTIVE) {
+			deactivateMeters(id);
+		}
+		return response;
+	}
+
+	// Sets every meter of a customer to INACTIVE.
+	private void deactivateMeters(Long customerId) {
+		var meters = meterRepository.findByCustomerId(customerId);
+		meters.forEach(m -> m.setStatus(RecordStatus.INACTIVE));
+		meterRepository.saveAll(meters);
 	}
 
 	// Delete a customer and all related records (readings, payments, bills, meters, notifications).
